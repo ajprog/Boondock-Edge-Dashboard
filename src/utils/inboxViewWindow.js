@@ -131,8 +131,8 @@ export function getMessageTimeMs(message) {
  * names such as `audio_YYYYMMDD_HHMMSS.wav`. Invalid or unrecognized names
  * return null rather than producing a misleading dashboard date.
  */
-export function getRecordingTimestampFromFilename(filename) {
-  if (!filename) return null;
+export function getRecordingTimestampFromFilename(filename, timestamp) {
+  if (!filename) return timestamp;
 
   const basename = String(filename).replace(/\\/g, '/').split('/').pop().split(/[?#]/)[0];
   const stem = basename.replace(/\.[^.]+$/, '');
@@ -162,7 +162,7 @@ export function getRecordingTimestampFromFilename(filename) {
     parsed.getUTCMinutes() === min &&
     parsed.getUTCSeconds() === s;
 
-  return isValid ? `${dateTimeParts[0]}${dateTimeParts[1]}${dateTimeParts[2]}_${dateTimeParts[3]}${dateTimeParts[4]}${dateTimeParts[5]}` : null;
+  return isValid ? `${dateTimeParts[0]}${dateTimeParts[1]}${dateTimeParts[2]}_${dateTimeParts[3]}${dateTimeParts[4]}${dateTimeParts[5]}` : timestamp;
 }
 
 function localDateToUtcMs(dateStr, timeStr) {

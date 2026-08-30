@@ -356,7 +356,7 @@ const processMessagesFromAPI = (apiData, timezone, edgeServerEndpoint) => {
     channel: item.channel_id.toString(),
     team: `Channel ${item.channel_id}`,
     // The recording filename is the source of truth for when audio began.
-    time: getRecordingTimestampFromFilename(item.filename),
+    time: getRecordingTimestampFromFilename(item.filename, item.timestamp),
     timezone: timezone,
     status: item.hasOwnProperty("status") ? item.status : "new",
     id: item.id,
