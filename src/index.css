@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: Inter, system-ui, sans-serif;
+    @apply bg-surface text-on-surface antialiased;
+  }
+  h1, h2, h3, .font-headline {
+    font-family: Manrope, system-ui, sans-serif;
+  }
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  -webkit-font-smoothing: antialiased;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+@keyframes summary-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.15); }
+}
+
+.summary-pulse-dot {
+  animation: summary-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Live / alert indicator (dashboard.html ledger) */
+@keyframes ledger-live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(114, 0, 9, 0.55);
+    transform: scale(0.95);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(114, 0, 9, 0);
+    transform: scale(1);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(114, 0, 9, 0);
+    transform: scale(0.95);
+  }
+}
+
+.ledger-live-pulse {
+  animation: ledger-live-pulse 2s ease-in-out infinite;
+}
+
+@keyframes flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.animate-flash {
+  animation: flash 0.5s infinite;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fix for documentation viewer - prevent pre tags from displaying as plain text */
+.documentation-viewer {
+  display: block !important;
+}
+
+/* Critical: Override any pre tag that wraps the entire ReactMarkdown output */
+/* This handles browser extensions or external scripts wrapping content */
+.documentation-viewer > pre[data-cursor-element-id],
+.documentation-viewer > pre:only-child,
+.documentation-viewer pre:first-child:last-child,
+.documentation-viewer pre[style*="white-space: pre-wrap"],
+.documentation-viewer pre[style*="word-wrap: break-word"] {
+  /* Completely remove pre tag behavior */
+  all: initial !important;
+  display: block !important;
+  white-space: normal !important;
+  word-wrap: normal !important;
+  word-break: normal !important;
+  font-family: inherit !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  overflow: visible !important;
+}
+
+/* Ensure children of problematic pre tags render correctly */
+.documentation-viewer > pre[data-cursor-element-id] > *,
+.documentation-viewer > pre:only-child > * {
+  display: block !important;
+  white-space: normal !important;
+}
+
+/* Ensure prose classes work correctly */
+.documentation-viewer .prose {
+  display: block !important;
+  white-space: normal !important;
+}
+
+.documentation-viewer .prose > * {
+  display: block !important;
+}
+
+/* Override pre tags that are not code blocks */
+.documentation-viewer pre:not([class*="language-"]):not([class*="hljs"]) {
+  white-space: normal !important;
+  word-wrap: normal !important;
+  display: block !important;
+}
+
+.documentation-viewer pre code {
+  display: block;
+  white-space: pre;
+}

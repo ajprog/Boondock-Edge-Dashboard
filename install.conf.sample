@@ -1,0 +1,15 @@
+INSTALL_ROOT="/opt/boondock/edge"
+INSTALL_USER="boondock"
+
+INSTALL_DASHBOARD="yes"
+INSTALL_API="yes"
+INSTALL_UDP="no"
+UPDATE_HOSTNAME="no"
+ENABLE_SERVICES="yes"
+
+ADMIN_EMAIL="admin@example.com"
+ADMIN_PASSWORD="StrongPassword123!"
+
+CONFIGURE_RECORDERS="yes"
+INBOX_VIEW="continuous"
+MESSAGE_SORTING="newest"

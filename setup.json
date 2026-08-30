@@ -1,0 +1,16 @@
+{
+  "admin": {
+    "email": "admin@example.com",
+    "password": "ChangeMe123!"
+  },
+  "selected_devices": ["boondock_edge"],
+  "wifi": {
+    "ssid": "ExampleWiFi",
+    "password": "ExampleWifiPassword123!"
+  },
+  "preferences": {
+    "timezone": "Etc/UTC",
+    "inbox_view": "continuous",
+    "message_sorting": "newest"
+  }
+}

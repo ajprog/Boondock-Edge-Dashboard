@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      "@/*": ["../frontendv2-nextbckp/*"],
+      "@legacy/*": ["../frontendv2-nextbckp/legacy/src/*"]
+    }
+  },
+  "include": [
+    "../frontendv2-nextbckp/next-env.d.ts",
+    "../frontendv2-nextbckp/**/*.ts",
+    "../frontendv2-nextbckp/**/*.tsx",
+    "../frontendv2-nextbckp/**/*.js",
+    "../frontendv2-nextbckp/**/*.jsx",
+    "../frontendv2-nextbckp/legacy/**/*.js",
+    "../frontendv2-nextbckp/legacy/**/*.jsx",
+    "../frontendv2-nextbckp/.next/types/**/*.ts"
+  ],
+  "exclude": ["../frontendv2-nextbckp/node_modules"]
+}
