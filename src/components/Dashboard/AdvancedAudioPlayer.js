@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Play, Pause, SkipBack, SkipForward, Volume2, ChevronLeft, X, RotateCcw, Scissors, Save, Download, Plus, History, Clock, ArrowLeft, ArrowRight } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from "axios";
 import ContentEditable from "react-contenteditable";
 
@@ -15,6 +15,29 @@ function debounce(func, wait) {
   };
 }
 
+const formatUtcRecordingTime = (value) => {
+  const compact = String(value || '').match(/^(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})$/);
+  const date = compact
+    ? new Date(Date.UTC(...compact.slice(1).map(Number).map((part, index) => index === 1 ? part - 1 : part)))
+    : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return `${date.toISOString().slice(0, 19).replace('T', ' ')} UTC`;
+};
+
+const getRecordingTimes = (startTime, duration) => {
+  const formattedStart = formatUtcRecordingTime(startTime);
+  const durationSeconds = Number(duration);
+  if (!formattedStart || !Number.isFinite(durationSeconds)) {
+    return { recordingStartTime: 'Unknown', recordingEndTime: 'Unknown' };
+  }
+
+  const startMs = new Date(formattedStart.replace(' UTC', 'Z').replace(' ', 'T')).getTime();
+  return {
+    recordingStartTime: formattedStart,
+    recordingEndTime: formatUtcRecordingTime(startMs + durationSeconds * 1000),
+  };
+};
+
 const ProfessionalAudioEditor = ({
   isDarkMode = false,
   timeFormat = "24h",
@@ -23,6 +46,8 @@ const ProfessionalAudioEditor = ({
   onClose = () => console.log("Close clicked"),
 }) => {
   const queryParams = new URLSearchParams(window.location.search);
+  const location = useLocation();
+  const navigationMessage = location.state?.message;
 
 
 
@@ -30,7 +55,6 @@ const ProfessionalAudioEditor = ({
   
   //  const messageId = queryParams.get("messageId");
 
-  const [initialAudioUrl, setInitialAudioUrl] = useState("");
   
   const urlMessageId = queryParams.get("messageId");
   const edgeServerEndpoint = (localStorage.getItem("EDGE_SERVER_ENDPOINT") || process.env.REACT_APP_EDGE_SERVER_ENDPOINT || '/api');
@@ -53,22 +77,26 @@ const ProfessionalAudioEditor = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [processProgress, setProcessProgress] = useState(0);
   const [zoomLevel, setZoomLevel] = useState(1);
-  const [transcriptionText, setTranscriptionText] = useState("");
+  const [transcriptionText, setTranscriptionText] = useState(navigationMessage?.message || "");
   const [waveformKey, setWaveformKey] = useState(0); // Force re-render of waveform
   const navigate = useNavigate();
-  const [audioUrl, setAudioUrl] = useState(initialAudioUrl);
+  const [audioUrl, setAudioUrl] = useState(navigationMessage?.url ? `${edgeServerEndpoint}/${navigationMessage.url}` : "");
+  const [initialAudioUrl, setInitialAudioUrl] = useState(navigationMessage?.url ? `${edgeServerEndpoint}/${navigationMessage.url}` : "");
+
   const [loading, setLoading] = useState(true);
   
-const [recordingTimes, setRecordingTimes] = useState({ recordingStartTime: '', recordingEndTime: '' });
-const [recordingTimezone, setRecordingTimezone] = useState('');
-const [userTimezone, setUserTimezone] = useState('UTC'); // Default fallback
+const [recordingTimes] = useState(() => getRecordingTimes(
+  navigationMessage?.time,
+  navigationMessage?.duration,
+));
+const userTimezone = location.state?.userTimezone || 'UTC';
 
 // later in your component
 const { recordingStartTime, recordingEndTime } = recordingTimes;
 
 // console.log("audioUrl:", audioUrl);
 
-const [channelName, setChannelName] = useState("");
+const [channelName, setChannelName] = useState(navigationMessage?.channelName || "");
 
 // Show toast notification
 const showToast = useCallback((message, type = 'success') => {
@@ -120,6 +148,10 @@ const showToast = useCallback((message, type = 'success') => {
  // Fetch audio URL based on messageId
   useEffect(() => {
     const effectiveMessageId = messageId || urlMessageId;
+    if (navigationMessage?.url) {
+      setIsLoading(false);
+      return;
+    }
     if (!effectiveMessageId) {
       setError('No messageId provided');
       setIsLoading(false);
@@ -152,7 +184,7 @@ const showToast = useCallback((message, type = 'success') => {
     };
 
     fetchAudioUrl();
-  }, [messageId, urlMessageId, edgeServerEndpoint]);
+  }, [messageId, urlMessageId, edgeServerEndpoint, navigationMessage?.url]);
 
 
 
@@ -231,19 +263,6 @@ const formatRecordingDate = useCallback(() => {
 
 
 
-
-// Fetch timezone from settings
-const fetchUserTimezone = useCallback(async () => {
-  try {
-    const response = await axios.get(`${edgeServerEndpoint}/settings`);
-    if (response.data && response.data.global_timezone) {
-      setUserTimezone(response.data.global_timezone);
-    }
-  } catch (error) {
-    console.error("Failed to fetch timezone from settings:", error);
-    // Keep default UTC
-  }
-}, [edgeServerEndpoint]);
 
 // getting start timing & end timing of audio
 // Utility function to format time safely with timezone conversion
@@ -366,60 +385,9 @@ const formatRecordingTime = (time) => {
 
 
 
- useEffect(() => {
-  const effectiveMessageId = messageId || urlMessageId;
-  if (!effectiveMessageId) return;
-
-  const fetchRecordingTimes = async () => {
-    try {
-      console.log("Fetching recording times for messageId:", effectiveMessageId);
-      const res = await axios.get(`${edgeServerEndpoint}/recording_duration_calculate/${effectiveMessageId}`);
-      console.log("Recording times response:", res.data);
-      
-      if (res.data && res.data.start_time && res.data.end_time) {
-        console.log("Setting recording times:", res.data.start_time, res.data.end_time);
-        console.log("Recording timezone from backend:", res.data.timezone);
-        setRecordingTimes({
-          recordingStartTime: res.data.start_time,
-          recordingEndTime: res.data.end_time,
-        });
-        // Store timezone information if available
-        if (res.data.timezone) {
-          console.log("Setting recording timezone:", res.data.timezone);
-          setRecordingTimezone(res.data.timezone);
-        }
-      } else {
-        console.log("No valid recording times found in response");
-        setRecordingTimes({
-          recordingStartTime: "Unknown",
-          recordingEndTime: "Unknown",
-        });
-      }
-    } catch (err) {
-      console.error("Failed to fetch recording times:", err);
-      setRecordingTimes({
-        recordingStartTime: "Unknown",
-        recordingEndTime: "Unknown",
-      });
-    }
-  };
-
-  fetchRecordingTimes();
-}, [messageId, urlMessageId, edgeServerEndpoint]);
-
-// Fetch user timezone from settings
-useEffect(() => {
-  fetchUserTimezone();
-}, [fetchUserTimezone]);
-
-
-
-
-
-
 useEffect(() => {
   const effectiveMessageId = messageId || urlMessageId;
-  if (!effectiveMessageId) return;
+  if (!effectiveMessageId || navigationMessage?.channelName) return;
 
   const fetchChannel = async () => {
     try {
@@ -436,7 +404,7 @@ useEffect(() => {
   };
 
   fetchChannel();
-}, [audioUrl, messageId, urlMessageId, edgeServerEndpoint]);
+}, [messageId, urlMessageId, edgeServerEndpoint, navigationMessage?.channelName]);
 
 
   // Format time function
@@ -1189,11 +1157,6 @@ const handledownloadaudio = async () => {
     }
   }, [transcriptionText, messageId, urlMessageId, isProcessing, isLoading, edgeServerEndpoint, croppedAudioWav, audioUrl, initialAudioUrl, parseAudioUrl, fetchHistory]);
 
-  // Load history when component mounts or messageId changes
-  useEffect(() => {
-    fetchHistory();
-  }, [fetchHistory]);
-
   // Save current state to undo stack
   const saveToUndoStack = (text) => {
     setUndoStack((prev) => [...prev, text]);
@@ -1276,6 +1239,7 @@ const [redoStack, setRedoStack] = useState([]);
 // History management state
 const [historyVersions, setHistoryVersions] = useState([]);
 const [showHistory, setShowHistory] = useState(false);
+const [historyLoaded, setHistoryLoaded] = useState(false);
 const [selectedVersion, setSelectedVersion] = useState(null);
 const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 const [historyTimezone, setHistoryTimezone] = useState('IST');
@@ -1428,7 +1392,14 @@ const handleWaveformClick = useCallback(
           </button>
 
           <button
-            onClick={() => setShowHistory(!showHistory)}
+            onClick={() => {
+              const opening = !showHistory;
+              setShowHistory(opening);
+              if (opening && !historyLoaded) {
+                setHistoryLoaded(true);
+                fetchHistory();
+              }
+            }}
             disabled={isLoadingHistory}
             className={`px-3 py-2 text-sm font-medium rounded-lg disabled:opacity-50 ${isDarkMode ? "bg-blue-800 hover:bg-blue-700 text-blue-200" : "bg-blue-100 hover:bg-blue-200 text-blue-700"}`}
           >

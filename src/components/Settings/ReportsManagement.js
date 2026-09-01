@@ -1,11 +1,7 @@
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { useAuth } from '../AuthContext';
-import {
-  Clock, Calendar, File, AlertTriangle, Mic,
-  Tag, FileText, Share2, Bookmark, List, Search,
-  Play, Pause, ChevronDown, ChevronUp, Radio, MapPin, Download,
-  Edit, Trash2, Copy, FileDown
-} from 'lucide-react';
+import { Clock, Calendar, File, AlertTriangle, Mic, Tag, FileText, List, Search, Play, Pause, 
+  ChevronDown, ChevronUp, Radio, MapPin, Download, Edit, Trash2, Copy, FileDown } from 'lucide-react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { buildIncidentReportPdfBlob, incidentReportPdfFilename, fetchBrandingForPdf } from '../../utils/incidentReportPdf';

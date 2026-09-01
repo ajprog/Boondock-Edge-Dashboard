@@ -1,32 +1,6 @@
-import React from 'react';
-import {
-  Settings,
-  Settings2,
-  Users,
-  Radio,
-  FileText,
-  Logs,
-  User,
-  Volume2,
-  AlertCircle,
-  Info,
-  Lock,
-  CheckCircle,
-  XCircle,
-  HelpCircle,
-  TrendingUp,
-  Server,
-  Siren,
-  Activity,
-  Cloud,
-  ShieldAlert,
-  Languages,
-  AudioWaveform,
-  Network,
-  Wifi,
-  Wrench,
-  MessageSquare
-} from 'lucide-react';
+import { Settings, Settings2, Users, Radio, FileText, Logs, User, Volume2, AlertCircle, Info, Lock,
+  CheckCircle, HelpCircle, TrendingUp, Server, Siren, Activity, Cloud, ShieldAlert, Network,
+  Wifi, Wrench, MessageSquare } from 'lucide-react';
 
 const PageSpecificDocumentation = ({ page, tab, globalTab, isDarkMode, highlightText, matchesSearch, searchQuery }) => {
   

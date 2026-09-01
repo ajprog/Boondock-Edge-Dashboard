@@ -1,25 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
-import {
-  Cpu,
-  RefreshCw,
-  Usb,
-  AlertCircle,
-  XCircle,
-  Edit3,
-  Save as SaveIcon,
-  Power,
-  Upload,
-  Trash2,
-  Zap,
-  Package,
-  Terminal,
-  Mic,
-  UploadCloud,
-  ChevronDown,
-  ChevronUp,
-  Info
-} from 'lucide-react';
+import { Cpu, RefreshCw, Usb, AlertCircle, Edit3, Save as SaveIcon, Power, Upload, Trash2, Zap, Package, Mic,
+  UploadCloud, ChevronDown, ChevronUp, Info } from 'lucide-react';
 
 /** Recording health payload (DEVICE_SERIAL.md): rc = recording count, uc = uploaded count this session */
 function getRecordingHealthBlock(serialPort) {

@@ -1,9 +1,8 @@
 # Boondock Edge Dashboard
 
 The Boondock Edge Dashboard is the local web interface for a Boondock Edge
-installation. It is installed alongside the Edge API, which serves the dashboard,
-stores application data, and communicates with supported Echo and Tango recorder
-hardware.
+installation. It is installed alongside the Edge API, stores application data, 
+and communicates with supported Echo and Tango recorder hardware.
 
 > [!IMPORTANT]
 > Boondock Edge is not a life-safety system and must not be used as the primary
@@ -17,126 +16,35 @@ hardware.
 | --- | --- |
 | [Boondock-Edge-Dashboard](https://github.com/Boondock-Echo/Boondock-Edge-Dashboard) | This local browser-based dashboard and the system installer. |
 | [Boondock-Edge-API](https://github.com/Boondock-Echo/Boondock-Edge-API) | The local application server, database management, device communication, and dashboard hosting. |
-| [Echo-Tango](https://github.com/Boondock-Echo/Echo-Tango) | Firmware and hardware documentation for Echo and Tango recorder devices. |
-
-## What the installer does
-
-The provided installer can set up a complete Edge host without requiring a
-separate dashboard build. By default, it:
-
-- downloads the `latest` Dashboard and API release tags from GitHub;
-- downloads the `latest-echo` and `latest-tango` firmware release assets;
-- creates the installation user and `/opt/boondock/edge` directory tree;
-- installs required system packages when they are missing;
-- creates a Python virtual environment and installs the API dependencies;
-- initializes the administrator account and application database; and
-- creates, enables, and starts `boondock-edge-api.service` on port `4000`.
-
-The installer replaces the component directories it manages. Back up application
-data and any local modifications before using it to update an existing host.
+| [Echo-Tango](https://github.com/Boondock-Echo/Echo-Tango) | Firmware for Echo and Tango recorder devices. |
 
 ## Requirements
 
 Use a dedicated Debian- or Ubuntu-based Linux computer that has:
 
-- `systemd`, `apt-get`, and Python 3;
+- `systemd`, `journalctl`, and `apt`
 - an internet connection and access to `github.com`;
 - `sudo` or root access;
 - enough storage for recordings, uploads, logs, firmware, and the application
   database; and
-- a serial connection to each local recorder, if recorders will be managed by
-  this host.
+- recorders with network access. (optional)USB connection to the local recorders.
 
 The installer adds its service account to the `dialout` group for serial-device
 access. NetworkManager's `nmcli` is optional; when it is available, the installer
 can copy the active Wi-Fi connection into initial device configuration.
 
-## Quick start
+## Installation
 
-### 1. Download the installer
-
-Create a working directory and download both installer files from this repository:
-
-```bash
-mkdir -p ~/boondock-edge-install
-cd ~/boondock-edge-install
-
-curl -fLO https://raw.githubusercontent.com/Boondock-Echo/Boondock-Edge-Dashboard/main/install.sh
-curl -fLo install.conf https://raw.githubusercontent.com/Boondock-Echo/Boondock-Edge-Dashboard/main/install.conf.sample
-chmod +x install.sh
-```
-
-If `curl` is unavailable, use `wget`:
+Create a working directory(to make there isn't already an install.sh in the directory) and run the following commands:
 
 ```bash
 wget https://raw.githubusercontent.com/Boondock-Echo/Boondock-Edge-Dashboard/main/install.sh
-wget -O install.conf https://raw.githubusercontent.com/Boondock-Echo/Boondock-Edge-Dashboard/main/install.conf.sample
-chmod +x install.sh
+chmod +x install.sh && sudo ./install.sh
 ```
 
-### 2. Configure the installation
+You can use an optional install.conf for non-interactive installation. See [install.conf.sample](https://github.com/ajprog/Boondock-Edge-Dashboard/blob/main/install.conf.sample)
 
-Open `install.conf` and, at minimum, replace the example administrator email and
-password:
-
-```bash
-nano install.conf
-```
-
-The sample contains these settings:
-
-| Setting | Default | Description |
-| --- | --- | --- |
-| `INSTALL_ROOT` | `/opt/boondock/edge` | Destination for the dashboard, API, environment, databases, recordings, and firmware. |
-| `INSTALL_USER` | `boondock` | Linux service account created when it does not already exist. |
-| `INSTALL_DASHBOARD` | `yes` | Install the dashboard release. |
-| `INSTALL_API` | `yes` | Install and initialize the API. A complete installation should leave this enabled. |
-| `UPDATE_HOSTNAME` | `no` | Change the host name to `boondock-edge`. |
-| `ENABLE_SERVICES` | `yes` | Enable the API service at boot. |
-| `ADMIN_EMAIL` | example value | Initial dashboard administrator login. |
-| `ADMIN_PASSWORD` | example value | Initial administrator password; it must be longer than eight characters. |
-| `CONFIGURE_RECORDERS` | `yes` | Include Boondock Edge recorders in initial setup. |
-| `INBOX_VIEW` | `continuous` | Initial inbox layout: `continuous` or `paged`. |
-| `MESSAGE_SORTING` | `newest` | Initial message order: `newest` or `oldest`. |
-
-Use a unique password and protect this file because it contains plaintext
-credentials. The password cannot contain brackets, parentheses, slashes, angle
-brackets, quotes, backticks, tabs, or other control characters. Delete the local
-configuration file after a successful install if you do not need to retain it.
-
-The boolean settings accept `yes`/`no`, `true`/`false`, `on`/`off`, or `1`/`0`.
-For unattended installation, every requested value must be present in
-`install.conf` or the environment.
-
-### 3. Run the installer
-
-Install the stable release channel:
-
-```bash
-sudo ./install.sh
-```
-
-To evaluate prerelease dashboard and API builds, install the `beta` channel:
-
-```bash
-sudo ./install.sh beta
-```
-
-The beta option changes only the Dashboard and API refs. Echo and Tango firmware
-still comes from the independently managed `latest-echo` and `latest-tango`
-releases. Run `./install.sh --help` to display the accepted arguments.
-
-### 4. Verify the service
-
-```bash
-sudo systemctl status boondock-edge-api.service --no-pager
-curl -I http://127.0.0.1:4000
-```
-
-The service should report `active (running)`, and the HTTP request should return a
-response from the application server.
-
-### 5. Open the dashboard
+### Viewing the dashboard
 
 On another computer on the same network, browse to either address printed by the
 installer:
@@ -144,20 +52,21 @@ installer:
 - `http://<edge-ip-address>:4000`
 - `http://<edge-hostname>.local:4000`
 
-Sign in with the `ADMIN_EMAIL` and `ADMIN_PASSWORD` configured above. If `.local`
-name resolution is unavailable, use the numeric address. Find it again with:
-
-```bash
-hostname -I
-```
-
-After signing in, confirm the preferences, connect the recorder hardware, and use
-the dashboard's device settings to verify that each expected serial device is
-visible. See [Echo-Tango](https://github.com/Boondock-Echo/Echo-Tango) for recorder
-hardware and firmware guidance.
 
 ## Operating and updating Edge
 
+### Viewing the dashboard
+
+On the local machine:
+
+- `http://127.0.0.1:4000
+
+On another computer on the same network, browse to either address printed by the
+installer:
+
+- `http://<edge-ip-address>:4000`
+- `http://<edge-hostname>.local:4000`
+- 
 ### Service management
 
 ```bash
@@ -180,33 +89,10 @@ With the default `INSTALL_ROOT`, the installer uses:
 
 | Path | Contents |
 | --- | --- |
-| `/opt/boondock/edge/dashboard` | Dashboard release files. |
-| `/opt/boondock/edge/api` | [Boondock Edge API](https://github.com/Boondock-Echo/Boondock-Edge-API) application files. |
-| `/opt/boondock/edge/db` | Application databases and recorder configuration. |
 | `/opt/boondock/edge/recordings` | Locally retained recordings. |
-| `/opt/boondock/edge/uploads` | Uploaded application data. |
 | `/opt/boondock/edge/logs` | Application log files. |
-| `/opt/boondock/edge/firmware` | Downloaded Echo and Tango firmware and firmware catalog. |
-| `/opt/boondock/edge/venv` | Shared Python environment for the API. |
-| `/etc/systemd/system/boondock-edge-api.service` | Generated service definition. |
 
 If you select a different `INSTALL_ROOT`, substitute it in the paths above.
-
-### Back up before updating
-
-Stop the service and back up the persistent data directories before reinstalling:
-
-```bash
-sudo systemctl stop boondock-edge-api.service
-sudo tar -czf "boondock-edge-backup-$(date +%Y%m%d-%H%M%S).tgz" \
-  -C /opt/boondock/edge db recordings uploads device_settings
-sudo systemctl start boondock-edge-api.service
-```
-
-Store the archive somewhere other than the Edge host. Then download fresh copies
-of `install.sh` and `install.conf.sample`, review configuration changes, and rerun
-the installer. Do not assume an older configuration sample contains every option
-required by a newer installer.
 
 ## Troubleshooting
 
@@ -305,8 +191,7 @@ ls -l /dev/ttyUSB* /dev/ttyACM* 2>/dev/null
 id boondock
 ```
 
-The service user should belong to `dialout`. If it was added to the group after
-the service started, restart the API service. Also check the kernel and service
+Also check the kernel and service
 logs:
 
 ```bash
