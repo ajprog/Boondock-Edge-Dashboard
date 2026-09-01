@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { X, Clock, Car, Tag, Radio, User, CheckCheck, Moon, Sun, LayoutList } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { X, Clock, Tag, Radio, User, CheckCheck, Moon, Sun, LayoutList } from 'lucide-react';
 import SystemClock from './SystemClock';
 import { useNavigate } from 'react-router-dom';
 import { usePermissions } from '../hooks/usePermissions';

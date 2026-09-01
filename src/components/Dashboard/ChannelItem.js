@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Volume, Volume1, Volume2, WifiOff, Activity, CircleDashed, Radio, Info } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Volume, Volume1, Volume2, Info } from "lucide-react";
 import LiveAudioPopup from "./LiveAudioPopup";
 
 const ChannelItem = ({ 

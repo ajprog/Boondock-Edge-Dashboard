@@ -3,7 +3,6 @@ import React, {
   useEffect,
   useState,
   useCallback,
-  useMemo,
 } from "react";
 import { ArrowUp, MessageSquare } from "lucide-react";
 import { toast } from "react-toastify";
@@ -60,21 +59,7 @@ const FullscreenMessages = ({
   const messagesTopRef = useRef(null);
   const messagesContainerRef = useRef(null);
 
-  // Use a ref for the in-flight set so changes don't trigger re-renders or re-fetch loops (HIGH-27)
-  const fetchingDurationsRef = useRef(new Set());
-  const [durationsCache, setDurationsCache] = useState({});
-
-  // Removed debug log: console.log("FullscreenMessages rendered", setActiveAudioUrl);
-  // Keep messages in sync and merge in durations from cache
-  const messages = useMemo(() => {
-    // Merge durations from cache into messages from props
-    return messagesProp.map(msg => {
-      if (durationsCache[msg.id] && (!msg.duration || msg.duration <= 0)) {
-        return { ...msg, duration: durationsCache[msg.id] };
-      }
-      return msg;
-    });
-  }, [messagesProp, durationsCache]);
+  const messages = messagesProp;
   
   const setMessages = useCallback(
     (newMessages) => setMessagesProp(newMessages),
@@ -203,55 +188,6 @@ const FullscreenMessages = ({
     };
     fetchUserRole();
   }, [user, edgeServerEndpoint]);
-
-  // Fetch duration for messages that don't have it
-  useEffect(() => {
-    const fetchMissingDurations = async () => {
-      // Find messages without duration that we haven't already fetched
-      const messagesNeedingDuration = messages.filter(
-        msg => msg.id &&
-        (!msg.duration || msg.duration <= 0) &&
-        !fetchingDurationsRef.current.has(msg.id) &&
-        !durationsCache[msg.id]
-      );
-
-      if (messagesNeedingDuration.length === 0) return;
-
-      // Limit to first 10 to avoid too many simultaneous requests
-      const messagesToFetch = messagesNeedingDuration.slice(0, 10);
-
-      // Mark all as in-flight before launching requests (HIGH-27)
-      messagesToFetch.forEach(msg => fetchingDurationsRef.current.add(msg.id));
-
-      // HIGH-26: use Promise.all so errors surface instead of being silently swallowed
-      const results = await Promise.allSettled(
-        messagesToFetch.map(msg =>
-          axios.get(`${edgeServerEndpoint}/recording_duration_calculate/${msg.id}`)
-            .then(res => ({ id: msg.id, duration: res.data?.duration_seconds }))
-        )
-      );
-
-      const newDurations = {};
-      results.forEach(result => {
-        if (result.status === 'fulfilled' && result.value.duration) {
-          newDurations[result.value.id] = result.value.duration;
-        } else if (result.status === 'rejected') {
-          logger.error(`Failed to fetch duration:`, result.reason);
-        }
-      });
-
-      // Release all in-flight marks
-      messagesToFetch.forEach(msg => fetchingDurationsRef.current.delete(msg.id));
-
-      if (Object.keys(newDurations).length > 0) {
-        setDurationsCache(prev => ({ ...prev, ...newDurations }));
-      }
-    };
-
-    // Debounce to avoid too frequent calls
-    const timeoutId = setTimeout(fetchMissingDurations, 500);
-    return () => clearTimeout(timeoutId);
-  }, [messages, edgeServerEndpoint, durationsCache, setMessages]); // fetchingDurationsRef excluded — it's a ref (HIGH-27)
 
   // Available tags and fetched tags
 
@@ -1320,10 +1256,16 @@ const FullscreenMessages = ({
   };
 
   // Navigation helper
-  const navigateToAdvancedPlayer = (url, messageId) =>
-    navigate(
-      `/advanced-player?messageId=${messageId}`
-    );
+  const navigateToAdvancedPlayer = (message) =>
+    navigate(`/advanced-player?messageId=${message.id}`, {
+      state: {
+        message: {
+          ...message,
+          channelName: channels?.[message.channel]?.name || message.team,
+        },
+        userTimezone: timezone,
+      },
+    });
 
 // const AudioIcon = ({ url, messageId, isDarkMode = false, isMobile = false }) => {
 //   const [isPlaying, setIsPlaying] = useState(false);
@@ -2313,7 +2255,7 @@ const FullscreenMessages = ({
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigateToAdvancedPlayer(item.url, item.id);
+                    navigateToAdvancedPlayer(item);
                   }}
                   className={`flex items-center gap-2 rounded-full px-3 py-2 text-xs font-medium ${
                     isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-700'
@@ -2653,7 +2595,7 @@ const FullscreenMessages = ({
           {canAccessAdvancedPlayer && (
             <button
               type="button"
-              onClick={() => navigateToAdvancedPlayer(item.url, item.id)}
+              onClick={() => navigateToAdvancedPlayer(item)}
               className={`${msgActionBtnBase} ${msgActionDim} ${
                 isDarkMode
                   ? "text-sky-400 hover:bg-slate-800 hover:text-sky-300"

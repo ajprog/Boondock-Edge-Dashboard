@@ -362,6 +362,7 @@ const processMessagesFromAPI = (apiData, timezone, edgeServerEndpoint) => {
     id: item.id,
     url: `${item.filename.replace(/\\/g, '/')}`,
     message: item.transcription || "No transcription available",
+    duration: item.duration,
     isNew: true,
   }));
   
@@ -436,6 +437,7 @@ const App = () => {
   }, [messages]);
   /** When inbox time preset / custom range changes in localStorage, replace inbox from a fresh fetch (not only the periodic newest slice). */
   const inboxPrefsFingerprintRef = useRef(null);
+  const initializedEndpointRef = useRef(null);
   /** Server keyset cursor for “load older” chunks (updated on full replace + each older fetch; not overwritten by periodic newest-only polls). */
   const inboxKeysetRef = useRef({
     prefsFp: '',
@@ -662,6 +664,9 @@ const App = () => {
 
   // Initial load
   useEffect(() => {
+    if (initializedEndpointRef.current === edgeServerEndpoint) return;
+    initializedEndpointRef.current = edgeServerEndpoint;
+
     const initialize = async () => {
       if (!edgeServerEndpoint) {
         setShowModal(true);
@@ -775,7 +780,8 @@ const App = () => {
         setLoading(true);
       }
 
-      const sinceTimestamp = resolveInboxSinceTimestamp(inboxPrefs);
+      const sinceTimestamp = (!replaceInboxMessages && messagesRef.current[0]?.time)
+        || resolveInboxSinceTimestamp(inboxPrefs);
       const plan = getInboxLoadPlan(inboxPrefs);
       const maxCap = plan.maxMessagesInMemory;
 

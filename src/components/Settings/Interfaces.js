@@ -1,20 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Network, 
-  Lightbulb, 
-  Power, 
-  Plus, 
-  Trash2, 
-  PowerOff, 
-  RefreshCw,
-  AlertCircle,
-  CheckCircle2,
-  Play,
-  Square,
-  Edit2,
-  X,
-  Check
-} from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Network, Lightbulb, Power, Plus, Trash2, RefreshCw, AlertCircle, CheckCircle2, Play,
+  Square, Edit2, X, Check } from 'lucide-react';
 import { gpioService, LED_PATTERNS } from '../services/gpioService';
 import { toast } from 'react-toastify';
 import SettingsSectionHeader from './SettingsSectionHeader';

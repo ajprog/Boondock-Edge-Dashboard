@@ -1,20 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import { 
-  User, 
-  Shield, 
-  Smartphone, 
-  Clock, 
-  Trash2, 
-  QrCode, 
-  Check, 
-  X, 
-  ArrowLeft,
-  Key,
-  Lock,
-  Unlock
-} from 'lucide-react';
+import { User, Shield, Smartphone, Clock, Trash2, Check, X, ArrowLeft, Key, Unlock } from 'lucide-react';
 
 const UserProfile = ({ isDarkMode, edgeServerEndpoint }) => {
   const { user } = useAuth();
