@@ -80,7 +80,7 @@ const ChannelSettingsModal = ({ isOpen, onClose, channel, onSave }) => {
       };
       fetchChannelData();
     }
-  }, [channel]);
+  }, [channel?.id]);
 
 
   useEffect(() => {
